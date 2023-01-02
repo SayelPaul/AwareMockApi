@@ -1,5 +1,8 @@
 package com.mockapi.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -25,24 +28,29 @@ import com.mockapi.dto.LocationData;
 import com.mockapi.dto.PressureData;
 import com.mockapi.dto.TemperatureData;
 
+import io.swagger.v3.oas.annotations.Operation;
+
 
 @RestController
 public class MockApiController {
 
 	@PostMapping("alerts")
+	@Operation(summary = "API for triggering mock alerts", tags = "MockApi")
 	public Alerts alert(@RequestHeader String url, @RequestHeader String api_key, @RequestBody Alerts payload) {
 		
 		RestTemplate restTemplate = new RestTemplate();
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		headers.set("X-API-Key", api_key);
-		HttpEntity<String> entity = new HttpEntity<>("message", headers);
-		restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+
 		
 		if(payload.getMessageType()!=null && payload.getSerialNumber()!=null && payload.getServerReceivedTimeStamp()!=null &&
 				payload.getDeviceReportingTimeStamp()!=null && payload.getShipmentID()!=null && payload.getDeviceType()!=null
 				&& payload.getLocation()!=null && payload.getAlertDetails()!=null) 
 		{
+			
+			HttpEntity<String> entity = new HttpEntity<>(payload.toString(), headers);
+	        restTemplate.exchange(url, HttpMethod.POST, entity, Alerts.class);
 			
 			return payload;
 			
@@ -79,6 +87,9 @@ public class MockApiController {
 			al.setAlertDetails(ad);
 					
 			
+			HttpEntity<String> entity = new HttpEntity<>(al.toString(), headers);
+	        restTemplate.exchange(url, HttpMethod.POST, entity, Alerts.class);
+			
 			return al;
 			
 
@@ -86,6 +97,7 @@ public class MockApiController {
 	
 	
 	@PostMapping("telemetry")
+	@Operation(summary = "API for triggering mock telemetry", tags = "MockApi")
 	public DeviceTelemetryMessage telemetry(@RequestHeader String url, @RequestHeader String api_key,
 			@RequestBody DeviceTelemetryMessage payload) {
 		
@@ -93,10 +105,12 @@ public class MockApiController {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		headers.set("X-API-Key", api_key);
-		HttpEntity<String> entity = new HttpEntity<>("message", headers);
-		restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+
 		
 		if(payload.getMessageType()!=null && payload.getDeviceTelemetryReport()!=null) {
+			
+			HttpEntity<String> entity = new HttpEntity<>(payload.toString(), headers);
+	        restTemplate.exchange(url, HttpMethod.POST, entity, DeviceTelemetryMessage.class);
 			
 				return payload;
 			
@@ -105,12 +119,17 @@ public class MockApiController {
 		DeviceTelemetryMessage dtm = new DeviceTelemetryMessage();
 		dtm.setMessageType("deviceTelemetryReport");
 		
-		DeviceTelemetryData dtd=new DeviceTelemetryData();
+		List<DeviceTelemetryData> dtdlist= new ArrayList<>();
+		DeviceTelemetryData dtd = new DeviceTelemetryData();
 		dtd.setSerialNumber("TK3400001");
 		dtd.setServerReceivedTimeStamp(12345678);
 		dtd.setDeviceReportingTimeStamp(12345678);
 		dtd.setDeviceType(DeviceType.TRACKER);
 		dtd.setSequenceNumber(12);
+		List<TemperatureData> templist=new ArrayList<>();
+		List<PressureData> presrlist=new ArrayList<>();
+		List<HumidityData> humidlist=new ArrayList<>();
+		
 		
 		LocationData ld=new LocationData();
 		ld.setLatitude(37.35);
@@ -127,24 +146,31 @@ public class MockApiController {
 		TemperatureData td=new TemperatureData();
 		td.setVal(76.5);
 		td.setTimeStamp(3544566);
-		dtd.setTemperature(td);
+		templist.add(td);
+		dtd.setTemperature(templist);
 		
 		PressureData pd=new PressureData();
 		pd.setVal(1012.51);
 		pd.setTimeStamp(3544566);
-		dtd.setPressure(pd);
+		presrlist.add(pd);
+		dtd.setPressure(presrlist);
 		
 		HumidityData hd=new HumidityData();
 		hd.setVal(39.15);
 		hd.setTimeStamp(3544566);
-		dtd.setHumidity(hd);
+		humidlist.add(hd);
+		dtd.setHumidity(humidlist);
 		
 		BatteryStatus bs=new BatteryStatus();
 		bs.setBatteryPercentage(50);
 		bs.setRemainingBatteryLife(567654);
 		dtd.setBatteryStatus(bs);
 		
-		dtm.setDeviceTelemetryReport(dtd);
+		dtdlist.add(dtd);
+		dtm.setDeviceTelemetryReport(dtdlist);
+		
+		HttpEntity<String> entity = new HttpEntity<>(dtm.toString(), headers);
+        restTemplate.exchange(url, HttpMethod.POST, entity, DeviceTelemetryMessage.class);
 
 		return dtm;
 	}

@@ -1,5 +1,7 @@
 package com.mockapi.dto;
 
+import java.util.List;
+
 import com.mockapi.config.DeviceType;
 
 import lombok.AllArgsConstructor;
@@ -19,9 +21,9 @@ public class DeviceTelemetryData {
 	private DeviceType deviceType;
 	private Integer sequenceNumber;
 	private LocationData location;
-	private TemperatureData temperature;
-	private PressureData pressure;
-	private HumidityData humidity;
+	private List<TemperatureData> temperature;
+	private List<PressureData> pressure;
+	private List<HumidityData> humidity;
 	private BatteryStatus batteryStatus;
 
 	
